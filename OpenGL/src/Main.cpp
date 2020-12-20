@@ -13,92 +13,11 @@
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
 #include "VertexArray.h"
+#include "Shader.h"
 
 
 
-struct ShaderSource {
-    std::string vertexSource, fragmentSource;
-};
 
-
-static ShaderSource parseShader(const std::string& path) {
-    std::fstream stream(path);
-
-    enum class ShaderType {
-        NONE = -1,
-        VERTEX = 0,
-        FRAGMENT = 1
-    };
-    ShaderType type = ShaderType::NONE;
-    std::string line;
-    std::stringstream ss[2];
-    size_t commentPos;
-    while (std::getline(stream, line)) {
-        if (line.find("//$shader") != std::string::npos) {
-            if (line.find("vertex") != std::string::npos) {
-                type = ShaderType::VERTEX;
-            } else if (line.find("fragment") != std::string::npos) {
-                type = ShaderType::FRAGMENT;
-            }
-            continue;
-        }
-        if (type == ShaderType::NONE) continue;
-        ss[(int)type] << line << '\n';
-    }
-    return { ss[0].str(), ss[1].str() };
-}
-
-static unsigned int compileShader(unsigned int type, const std::string& source) {
-    unsigned int id = glCreateShader(type);
-    // TODO: Error handling
-    const char* src = source.c_str();
-    glShaderSource(id, 1, &src, nullptr); // i dont care about the length
-    glCompileShader(id);
-
-    // `i` -> integer
-    // `v` -> vector
-    int result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        // did not compile successfully
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length);
-        glGetShaderInfoLog(id, length, &length, message);
-        std::cerr << "\x1b[1;31mFailed to compile " << (type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader: \x1b[m" << message << std::endl;
-        glDeleteShader(id);
-        return 0; // shader is not valid
-    }
-
-    return id;
-}
-
-static unsigned int createShader(const ShaderSource& src) {
-    // shader source code -> compiled & linked -> shader ID to bind
-    unsigned int programID = glCreateProgram();
-    // create two shader objects
-    unsigned int fs = compileShader(GL_FRAGMENT_SHADER, src.fragmentSource);
-    unsigned int vs = compileShader(GL_VERTEX_SHADER, src.vertexSource);
-
-    // Add sources together
-    glAttachShader(programID, vs);
-    glAttachShader(programID, fs);
-
-    // Link them
-    glLinkProgram(programID);
-
-    // Validate them
-    glValidateProgram(programID);
-
-    // remove intermediate (obj-like) shader
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-
-    // we should call glDetachShader after linked (no debug mode)
-
-    return programID;
-}
 
 int main(void) {
     GLFWwindow* window;
@@ -170,20 +89,12 @@ int main(void) {
         //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // load shader
-        ShaderSource src = parseShader("res/shaders/basic.shader");
-        unsigned int shader = createShader(src);
-
-        // bind shader
-        GLCall(glUseProgram(shader));
-
-        // get location of u_color by n
-        int location = glGetUniformLocation(shader, "u_color");
-        // if the variable it's unused, the compiler will remove it
-        ASSERT(location != -1);
+        Shader shader("res/shaders/basic.shader");
+        shader.bind();
 
 
         va.unbind();
-        GLCall(glUseProgram(0)); // no shader
+        shader.unbind();
         vb.unbind();
         ib.unbind();
 
@@ -197,34 +108,12 @@ int main(void) {
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window)) {
-            /* Render here */
             GLCall(glClear(GL_COLOR_BUFFER_BIT));
+            shader.setUniform4f("u_color", r, 0.3f, 0.8f, 1.0f);
 
-
-
-
-            // 4. Use target data on GPU
-            // order:
-            // 1. Vertex shader
-            //  where is the vertex ? (positions, pass data into next stage)
-            // - Gets called 3 times (triangle vertices)
-            // - Could be used for optimizations onto the fragment shader (as it is called much less times)
-            // 2. Fragment shader
-            // runs once for every pixel rasterized -> determines output color -> 
-            // issue draw call (no index buffer) -> GPU
-            //glDrawArrays(GL_TRIANGLES, 0, 6); // 3 attributes -> calls vertex shader 3 times, buffer 0
-
-
-            // send data to shaders (uniforms)
-            // Uniforms are set per draw call
-            GLCall(glUseProgram(shader));
-            GLCall(glUniform4f(location, r, 0.3f, 0.8f, 1.0f));
-
-            // use our vertex and layout data
+            shader.bind();
             va.bind();
-            // use our index buffer to tell OpenGL how to draw 
             ib.bind();
-
             GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
 
@@ -240,8 +129,6 @@ int main(void) {
             /* Poll for and process events */
             glfwPollEvents();
         }
-
-        glDeleteProgram(shader);
     }
 
     glfwTerminate();

@@ -35,6 +35,7 @@ public:
 
 
     class Layout {
+    private:
         std::vector<Element> m_elements;
         unsigned int m_stride;
     public:

@@ -14,6 +14,7 @@
 #include "IndexBuffer.h"
 #include "VertexArray.h"
 #include "Shader.h"
+#include "Texture.h"
 
 
 
@@ -58,11 +59,12 @@ int main(void) {
     // RENDERING PIPELINE
 
     // 1. Send data to the GPU
+    // first two are position, next two are position in texture
     float vertices[] = {
-        -0.5f, -0.5f,// 0
-        0.5f, -0.5f,// 1
-        0.5f, 0.5f,// 2
-        -0.5f, 0.5f,// 3
+        -0.5f, -0.5f, 0.0f, 0.0f, // 0
+        0.5f, -0.5f, 1.0, 0.0f, // 1
+        0.5f, 0.5f, 1.0f, 1.0f,// 2
+        -0.5f, 0.5f, 0.0f, 1.0f// 3
     };
 
     unsigned int indices[] = {
@@ -70,16 +72,20 @@ int main(void) {
         2, 3, 0
     };
 
+    GLCall(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    GLCall(glEnable(GL_BLEND));
+
 
     {
 
         // generate buffer
         VertexArray va;
-        VertexBuffer vb(vertices, 4 * 2 * sizeof(float));
+        VertexBuffer vb(vertices, 4 * 4 * sizeof(float));
 
 
-        VertexBuffer::Layout layout;
+        VertexBufferLayout layout;
         layout.push<float>(2); // 2 floats per vertex
+        layout.push<float>(2); // 2 floats per image coordinates
         va.addBuffer(vb, layout);
 
         // index buffer
@@ -102,19 +108,25 @@ int main(void) {
         float r = 0.0f;
         float increment = 0.05f;
 
+        Renderer renderer;
+        Texture texture("res/textures/ChernoLogo.png");
+        texture.bind();
+
+        shader.setUniform4f("u_color", r, 0.3f, 0.8f, 1.0f);
+        shader.setUniform1i("u_texture", 0); // same slot as texture
 
         // vertex arrays:
         // allow to bind a vertex buffer with t
 
         /* Loop until the user closes the window */
         while (!glfwWindowShouldClose(window)) {
-            GLCall(glClear(GL_COLOR_BUFFER_BIT));
-            shader.setUniform4f("u_color", r, 0.3f, 0.8f, 1.0f);
+            renderer.clear();
+
 
             shader.bind();
             va.bind();
             ib.bind();
-            GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+            renderer.draw(va, ib, shader);
 
 
             if (r > 1.0f) increment = -0.05f;

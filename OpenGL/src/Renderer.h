@@ -1,20 +1,14 @@
 #pragma once
 
-#include <GL/glew.h>
+#include "VertexArray.h"
+#include "IndexBuffer.h"
+#include "Shader.h"
 
 
-void GLClearError();
-bool GLCheckError(const char* function, const char* file, int line);
 
-#ifdef _DEBUG
-# define ASSERT(x) if (!(x)) __debugbreak()
-#else
-# define ASSERT(x) x
-#endif
+class Renderer {
 
-
-#ifdef _DEBUG
-# define GLCall(x) do { GLClearError(); (x); ASSERT(GLCheckError(#x, __FILE__, __LINE__)); } while(0)
-#else
-# define GLCall(x) x
-#endif
+public:
+    void draw(const VertexArray& va, const IndexBuffer& ib, const Shader& shader) const; // shader? TODO: use materials.
+    void clear() const;
+};

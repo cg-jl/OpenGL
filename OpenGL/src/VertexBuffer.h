@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <GL/glew.h>
-#include "Renderer.h"
+#include "GLMacros.h"
 
 
 class VertexBuffer {
@@ -13,7 +13,6 @@ public:
 
     void bind() const;
     void unbind() const;
-
     struct Element {
         unsigned int count;
         unsigned int type;
@@ -34,12 +33,16 @@ public:
 
 
 
-    class Layout {
+
+
+};
+
+    class VertexBufferLayout {
     private:
-        std::vector<Element> m_elements;
+        std::vector<VertexBuffer::Element> m_elements;
         unsigned int m_stride;
     public:
-        Layout() 
+        VertexBufferLayout() 
             : m_stride(0) {}
 
         template<typename T>
@@ -50,24 +53,24 @@ public:
         template<>
         void push<float>(unsigned int count) {
             m_elements.push_back({ count, GL_FLOAT, GL_FALSE });
-            m_stride += Element::getSizeOfType(GL_FLOAT) * count;
+            m_stride += VertexBuffer::Element::getSizeOfType(GL_FLOAT) * count;
         }
 
 
         template<>
         void push<unsigned int>(unsigned int count) {
             m_elements.push_back({ count, GL_UNSIGNED_INT, GL_FALSE });
-            m_stride += Element::getSizeOfType(GL_UNSIGNED_INT) * count;
+            m_stride += VertexBuffer::Element::getSizeOfType(GL_UNSIGNED_INT) * count;
         }
 
 
         template<>
         void push<unsigned char>(unsigned int count) {
             m_elements.push_back({ count, GL_UNSIGNED_BYTE, GL_TRUE });
-            m_stride += Element::getSizeOfType(GL_UNSIGNED_BYTE) * count;
+            m_stride += VertexBuffer::Element::getSizeOfType(GL_UNSIGNED_BYTE) * count;
         }
 
-        inline const std::vector<Element>& getElements() const noexcept {
+        inline const std::vector<VertexBuffer::Element>& getElements() const noexcept {
             return m_elements;
         }
 
@@ -75,6 +78,3 @@ public:
             return m_stride;
         }
     };
-
-};
-

@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include "Renderer.h"
+#include "GLMacros.h"
 #include <GL/glew.h>
 #include <sstream>
 #include <fstream>
@@ -119,7 +120,11 @@ void Shader::setUniform4f(const std::string& name, float v0, float v1, float v2,
     glUniform4f(getUniformLocation(name), v0, v1, v2, v3);
 }
 
-unsigned int Shader::getUniformLocation(const std::string& name) {
+void Shader::setUniform1i(const std::string& name, int value) {
+    glUniform1i(getUniformLocation(name), value);
+}
+
+int Shader::getUniformLocation(const std::string& name) {
     const auto found = m_uniformCache.find(name);
     if (found != m_uniformCache.end()) {
         return found->second;
@@ -129,7 +134,7 @@ unsigned int Shader::getUniformLocation(const std::string& name) {
         std::cout << "Warning:: uniform '" << name << "' doesn't exist!\n";
     }
     else {
-        m_uniformCache.insert({ name, (unsigned int)loc });
+        m_uniformCache.insert({ name, loc });
     }
-    return (unsigned int)loc;
+    return loc;
 }

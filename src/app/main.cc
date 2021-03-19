@@ -97,7 +97,7 @@ int main(void) {
         //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         // load shader
-        Shader shader("res/shaders/basic.shader");
+        Shader shader("res/shaders/textured.shader");
         shader.bind();
 
 
@@ -130,10 +130,10 @@ int main(void) {
             renderer.draw(va, ib, shader);
 
 
-            if (r > 1.0f) increment = -0.05f;
-            else if (r < 0.0f) increment = 0.05f;
-            r += increment;
-            shader.setUniform4f("u_color", r, 0.3f, 0.8f, 1.0f);
+            /* if (r > 1.0f) increment = -0.05f; */
+            /* else if (r < 0.0f) increment = 0.05f; */
+            /* r += increment; */
+            /* shader.setUniform4f("u_color", r, 0.3f, 0.8f, 1.0f); */
 
             // you should enable shaders
 

@@ -2,6 +2,7 @@ glapi_cc = [
   'IndexBuffer.cc',
   'Renderer.cc',
   'Shader.cc',
+  'GLMacros.cc',
   'Texture.cc',
   'VertexArray.cc',
   'VertexBuffer.cc'

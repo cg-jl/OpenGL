@@ -1,20 +1,19 @@
+#include <cassert>
 void GLClearError();
-bool GLCheckError(const char* function, const char* file, int line);
+bool GLCheckError(const char *function, const char *file, int line);
 
 #ifdef _DEBUG
-# define ASSERT(x) if (!(x)) __debugbreak()
+#define ASSERT(x) assert(x)
 #else
-# define ASSERT(x) x
+#define ASSERT(x) x
 #endif
-
 
 #ifdef _DEBUG
-# define GLCall(x) \
-     GLClearError();  \
-     (x); \
-     ASSERT(GLCheckError(#x, __FILE__, __LINE__));
+#define GLCall(x)                                                              \
+  GLClearError();                                                              \
+  (x);                                                                         \
+  ASSERT(GLCheckError(#x, __FILE__, __LINE__));
 #else
-# define GLCall(x) x
+#warning "compiling without _DEBUG"
+#define GLCall(x) x
 #endif
-
-

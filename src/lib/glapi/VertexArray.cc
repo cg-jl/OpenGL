@@ -16,7 +16,7 @@ void VertexArray::addBuffer(const VertexBuffer& vb,
     vb.bind();
     const auto& elements = layout.getElements();
     const unsigned int stride = layout.getStride();
-    unsigned int offset = 0;
+    uintptr_t offset = 0;
     for (unsigned int i = 0; i < elements.size(); ++i) {
         const auto& el = elements[i];
         GLCall(glEnableVertexAttribArray(i));
